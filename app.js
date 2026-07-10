@@ -87,28 +87,47 @@ function goPage(name, btn) {
 // ── BALANCE CARD ──────────────────────────────────────
 function renderBalanceCard() {
   const stats = calcStats(selWalletId, calYear, calMonth);
-  const totalBal = selWalletId === 'all'
-    ? DB.wallets.reduce((s, w) => s + (w.balance || 0), 0)
+
+  const totalBal = selWalletId === "all"
+    ? DB.wallets.reduce((sum, w) => sum + (w.balance || 0), 0)
     : (DB.wallets.find(w => w.id === selWalletId)?.balance || 0);
-  document.getElementById('balance-card-wrap').innerHTML = `
+
+  document.getElementById("balance-card-wrap").innerHTML = `
     <div class="balance-card">
+
       <div class="balance-label">ยอดรวม</div>
-      <div class="balance-amount">${fmt(totalBal)} ฿</div>
+
+      <div class="balance-amount ${totalBal < 0 ? "negative" : "positive"}">
+        ${totalBal < 0 ? "-" : ""}${fmt(Math.abs(totalBal))} ฿
+      </div>
+
       <div class="balance-row">
+
         <div class="balance-item">
           <div class="b-label">รายรับ</div>
-          <div class="b-val income">+${fmt(stats.income)}</div>
+          <div class="b-val income">
+            +${fmt(stats.income)}
+          </div>
         </div>
+
         <div class="balance-item">
           <div class="b-label">รายจ่าย</div>
-          <div class="b-val expense">-${fmt(stats.expense)}</div>
+          <div class="b-val expense">
+            -${fmt(Math.abs(stats.expense))}
+          </div>
         </div>
+
         <div class="balance-item">
           <div class="b-label">คงเหลือ</div>
-          <div class="b-val net">${fmt(stats.net)}</div>
+          <div class="b-val ${stats.net < 0 ? "negative" : "positive"}">
+            ${stats.net < 0 ? "-" : ""}${fmt(Math.abs(stats.net))}
+          </div>
         </div>
+
       </div>
-    </div>`;
+
+    </div>
+  `;
 }
 
 function calcStats(walletId, y, m) {
