@@ -1,5 +1,10 @@
+// ═══════════════════════════════════════════════════════════
+//  JODJOD - Personal Finance Tracker
+//  Organized & Refactored
+// ═══════════════════════════════════════════════════════════
 
-// ── DATA ──────────────────────────────────────────
+// ── DATA ──────────────────────────────────────────────
+
 let DB = {
   wallets: [],
   transactions: [],
@@ -25,7 +30,17 @@ const DEFAULT_CATS = {
     { icon: '💄', name: 'ความงาม' }, { icon: '🔧', name: 'ซ่อมแซม' }
   ]
 };
-// ── CALENDAR ──────────────────────────────────────
+
+let calYear, calMonth;       // current calendar view
+let selWalletId = 'all';     // 'all' or wallet id
+let selectedDay = null;
+let activeCatTab = 'expense';
+let selectedCat = null;
+let editTxId = null;
+let txFilterWallet = 'all', txFilterMonth = 'all', txFilterType = 'all';
+
+// ── CALENDAR ──────────────────────────────────────────
+
 const MONTHS_TH = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 const DAYS_TH = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
@@ -50,16 +65,8 @@ function loadDB() {
 }
 function saveDB() { localStorage.setItem('jodjod_v1', JSON.stringify(DB)); }
 
-// ── STATE ──────────────────────────────────────────
-let calYear, calMonth;       // current calendar view
-let selWalletId = 'all';     // 'all' or wallet id
-let selectedDay = null;
-let activeCatTab = 'expense';
-let selectedCat = null;
-let editTxId = null;
-let txFilterWallet = 'all', txFilterMonth = 'all', txFilterType = 'all';
+// ── INIT ──────────────────────────────────────────────
 
-// ── INIT ──────────────────────────────────────────
 loadDB();
 const now = new Date();
 calYear = now.getFullYear(); calMonth = now.getMonth();
@@ -74,7 +81,8 @@ function renderAll() {
   updateTodayLabel();
 }
 
-// ── NAVIGATION ──────────────────────────────────────
+// ── NAVIGATION ────────────────────────────────────────
+
 function goPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -86,6 +94,7 @@ function goPage(name, btn) {
 }
 
 // ── BALANCE CARD ──────────────────────────────────────
+
 function renderBalanceCard() {
   const stats = calcStats(selWalletId, calYear, calMonth);
 
@@ -145,8 +154,6 @@ function calcStats(walletId, y, m) {
 function fmt(n) {
   return Math.abs(n).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
-
-
 
 function renderCalendar() {
   document.getElementById('cal-month-title').textContent = `${MONTHS_TH[calMonth]} ${calYear + 543}`;
@@ -230,7 +237,8 @@ function updateTodayLabel() {
     `${d.getDate()} ${MONTHS_TH[d.getMonth()]}\n${d.getFullYear() + 543}`;
 }
 
-// ── TRANSACTIONS PAGE ──────────────────────────────────────
+// ── TRANSACTIONS PAGE ─────────────────────────────────
+
 function renderTransactionPage() {
   // filters
   const filterDiv = document.getElementById('tx-filters');
@@ -364,7 +372,8 @@ function openEditTx(id) {
   }, 50);
 }
 
-// ── ADD PAGE ──────────────────────────────────────
+// ── ADD PAGE ──────────────────────────────────────────
+
 function renderAddPage() {
   // wallet select
   const sel = document.getElementById('add-wallet-sel');
@@ -522,6 +531,7 @@ function saveNewCat() {
 }
 
 // ── WALLETS PAGE ──────────────────────────────────────
+
 function renderWalletsPage() {
   const list = document.getElementById('wallet-list');
   if (DB.wallets.length === 0) {
@@ -672,7 +682,8 @@ function saveNewWallet() {
   showToast('✅ เพิ่มกระเป๋าแล้ว');
 }
 
-// ── MONTH / WALLET PICKERS ──────────────────────────────────────
+// ── MONTH / WALLET PICKERS ────────────────────────────
+
 function openMonthPicker() {
   const months = MONTHS_TH.map((m, i) => `
     <div style="padding:12px;border-radius:10px;cursor:pointer;font-size:15px;
@@ -704,7 +715,8 @@ function pickWallet(id) {
   closeModal(); renderBalanceCard(); renderCalendar();
 }
 
-// ── SETTINGS ──────────────────────────────────────
+// ── SETTINGS ──────────────────────────────────────────
+
 function exportData() {
   const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -752,7 +764,8 @@ function confirmReset() {
   showToast('🗑️ ล้างข้อมูลแล้ว');
 }
 
-// ── MODAL ──────────────────────────────────────────
+// ── MODAL ─────────────────────────────────────────────
+
 function openModal(html) {
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('modal-overlay').classList.add('open');
@@ -761,7 +774,8 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
 }
 
-// ── TOAST ──────────────────────────────────────────
+// ── TOAST ─────────────────────────────────────────────
+
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -771,7 +785,8 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// ── UTILS ──────────────────────────────────────────
+// ── UTILS ─────────────────────────────────────────────
+
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
