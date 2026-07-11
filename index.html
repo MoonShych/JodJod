@@ -1,187 +1,194 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="style.css">
-<title>JodJod</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="style.css">
+  <title>JodJod</title>
 </head>
+
 <body>
 
-<div id="app">
-  <!-- PAGE 1: CALENDAR -->
-  <div class="page active" id="page-calendar">
-    <div class="page-header" style="padding-top:56px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div class="page-title">🌙 Blue Moon</div>
-          <div class="page-subtitle" id="cal-subtitle">ติดตามการเงินของคุณ</div>
-        </div>
-        <div style="font-size:11px;color:var(--text3);text-align:right" id="cal-today-label"></div>
-      </div>
-    </div>
-
-    <div id="balance-card-wrap"></div>
-
-    <div class="selectors">
-      <button class="sel-btn" onclick="openMonthPicker()">📅 <span id="sel-month-label">เดือนนี้</span> ▾</button>
-      <button class="sel-btn" onclick="openWalletPicker('cal')">💼 <span id="sel-wallet-label">ทุกกระเป๋า</span> ▾</button>
-    </div>
-
-    <div class="cal-wrap">
-      <div class="cal-header">
-        <button class="cal-nav" onclick="calPrev()">‹</button>
-        <div class="cal-month" id="cal-month-title"></div>
-        <button class="cal-nav" onclick="calNext()">›</button>
-      </div>
-      <div class="cal-grid" id="cal-dow-row"></div>
-      <div class="cal-grid" id="cal-days"></div>
-    </div>
-
-    <div class="day-detail" id="day-detail" style="display:none">
-      <div class="day-detail-title" id="day-detail-title"></div>
-      <div id="day-tx-list"></div>
-    </div>
-  </div>
-
-  <!-- PAGE 2: TRANSACTIONS -->
-  <div class="page" id="page-transactions">
-    <div class="page-header" style="padding-top:56px">
-      <div class="page-title">รายการทั้งหมด</div>
-    </div>
-    <div class="search-wrap">
-      <input class="search-box" type="text" placeholder="🔍  ค้นหารายการ..." oninput="filterTx()" id="tx-search">
-    </div>
-    <div class="filter-row" id="tx-filters"></div>
-    <div style="padding:0 16px" id="tx-list"></div>
-  </div>
-
-  <!-- PAGE 3: ADD TRANSACTION -->
-  <div class="page" id="page-add">
-    <div class="page-header" style="padding-top:56px">
-      <div class="page-title">เพิ่มรายการ</div>
-    </div>
-    <div class="add-wallet-sel">
-      <select id="add-wallet-sel" onchange="updateAddForm()">
-        <option value="">เลือกกระเป๋า...</option>
-      </select>
-    </div>
-    <div class="cat-section">
-      <div class="cat-type-tabs">
-        <button class="cat-tab expense active" id="tab-expense" onclick="setCatTab('expense')">💸 รายจ่าย</button>
-        <button class="cat-tab income" id="tab-income" onclick="setCatTab('income')">💰 รายรับ</button>
-      </div>
-      <input class="cat-search" type="text" placeholder="🔍  ค้นหาหมวดหมู่..." oninput="filterCats()" id="cat-search-input">
-      <div class="cat-grid" id="cat-grid"></div>
-    </div>
-    <div class="mini-form" id="mini-form" style="display:none">
-      <div class="mini-form-title">
-        <span id="mini-form-cat-icon" style="font-size:22px"></span>
-        <span id="mini-form-cat-name" style="font-weight:700;color:var(--text)"></span>
-        <span id="mini-form-type-badge" style="margin-left:auto;font-size:11px;padding:3px 8px;border-radius:20px"></span>
-      </div>
-      <div class="form-field">
-        <div class="form-label">จำนวนเงิน (บาท) *</div>
-        <input class="form-input amount-big" type="number" id="add-amount" placeholder="0.00" inputmode="decimal" step="0.01">
-      </div>
-      <div style="display:flex;gap:8px">
-        <div class="form-field" style="flex:1">
-          <div class="form-label">วันที่</div>
-          <input class="form-input" type="date" id="add-date">
-        </div>
-        <div class="form-field" style="flex:1">
-          <div class="form-label">เวลา</div>
-          <input class="form-input" type="time" id="add-time">
+  <div id="app">
+    <!-- PAGE 1: CALENDAR -->
+    <div class="page active" id="page-calendar">
+      <div class="page-header" style="padding-top:56px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="page-title">JodJod</div>
+            <div class="page-subtitle" id="cal-subtitle">ติดตามการเงินของคุณ</div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);text-align:right" id="cal-today-label"></div>
         </div>
       </div>
-      <div class="form-field">
-        <div class="form-label">หมายเหตุ (ไม่บังคับ)</div>
-        <input class="form-input" type="text" id="add-note" placeholder="เช่น ข้าวกลางวัน">
+
+      <div id="balance-card-wrap"></div>
+
+      <div class="selectors">
+        <button class="sel-btn" onclick="openMonthPicker()">📅 <span id="sel-month-label">เดือนนี้</span> ▾</button>
+        <button class="sel-btn" onclick="openWalletPicker('cal')">💼 <span id="sel-wallet-label">ทุกกระเป๋า</span>
+          ▾</button>
       </div>
-      <button class="save-btn" onclick="saveTransaction()">✓  บันทึกรายการ</button>
+
+      <div class="cal-wrap">
+        <div class="cal-header">
+          <button class="cal-nav" onclick="calPrev()">‹</button>
+          <div class="cal-month" id="cal-month-title"></div>
+          <button class="cal-nav" onclick="calNext()">›</button>
+        </div>
+        <div class="cal-grid" id="cal-dow-row"></div>
+        <div class="cal-grid" id="cal-days"></div>
+      </div>
+
+      <div class="day-detail" id="day-detail" style="display:none">
+        <div class="day-detail-title" id="day-detail-title"></div>
+        <div id="day-tx-list"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: TRANSACTIONS -->
+    <div class="page" id="page-transactions">
+      <div class="page-header" style="padding-top:56px">
+        <div class="page-title">รายการทั้งหมด</div>
+      </div>
+      <div class="search-wrap">
+        <input class="search-box" type="text" placeholder="🔍  ค้นหารายการ..." oninput="filterTx()" id="tx-search">
+      </div>
+      <div class="filter-row" id="tx-filters"></div>
+      <div style="padding:0 16px" id="tx-list"></div>
+    </div>
+
+    <!-- PAGE 3: ADD TRANSACTION -->
+    <div class="page" id="page-add">
+      <div class="page-header" style="padding-top:56px">
+        <div class="page-title">เพิ่มรายการ</div>
+      </div>
+      <div class="add-wallet-sel">
+        <select id="add-wallet-sel" onchange="updateAddForm()">
+          <option value="">เลือกกระเป๋า...</option>
+        </select>
+      </div>
+      <div class="cat-section">
+        <div class="cat-type-tabs">
+          <button class="cat-tab expense active" id="tab-expense" onclick="setCatTab('expense')">💸 รายจ่าย</button>
+          <button class="cat-tab income" id="tab-income" onclick="setCatTab('income')">💰 รายรับ</button>
+        </div>
+        <input class="cat-search" type="text" placeholder="🔍  ค้นหาหมวดหมู่..." oninput="filterCats()"
+          id="cat-search-input">
+        <div class="cat-grid" id="cat-grid"></div>
+      </div>
+      <div class="mini-form" id="mini-form" style="display:none">
+        <div class="mini-form-title">
+          <span id="mini-form-cat-icon" style="font-size:22px"></span>
+          <span id="mini-form-cat-name" style="font-weight:700;color:var(--text)"></span>
+          <span id="mini-form-type-badge"
+            style="margin-left:auto;font-size:11px;padding:3px 8px;border-radius:20px"></span>
+        </div>
+        <div class="form-field">
+          <div class="form-label">จำนวนเงิน (บาท) *</div>
+          <input class="form-input amount-big" type="number" id="add-amount" placeholder="0.00" inputmode="decimal"
+            step="0.01">
+        </div>
+        <div style="display:flex;gap:8px">
+          <div class="form-field" style="flex:1">
+            <div class="form-label">วันที่</div>
+            <input class="form-input" type="date" id="add-date">
+          </div>
+          <div class="form-field" style="flex:1">
+            <div class="form-label">เวลา</div>
+            <input class="form-input" type="time" id="add-time">
+          </div>
+        </div>
+        <div class="form-field">
+          <div class="form-label">หมายเหตุ (ไม่บังคับ)</div>
+          <input class="form-input" type="text" id="add-note" placeholder="เช่น ข้าวกลางวัน">
+        </div>
+        <button class="save-btn" onclick="saveTransaction()">✓ บันทึกรายการ</button>
+      </div>
+    </div>
+
+    <!-- PAGE 4: WALLETS -->
+    <div class="page" id="page-wallets">
+      <div class="page-header" style="padding-top:56px">
+        <div class="page-title">กระเป๋าเงิน</div>
+      </div>
+      <div id="wallet-list" style="margin-top:12px"></div>
+      <button class="add-wallet-fab" onclick="openAddWallet()">＋</button>
+    </div>
+
+    <!-- PAGE 5: SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-header" style="padding-top:56px">
+        <div class="page-title">ตั้งค่า</div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">ข้อมูล</div>
+        <div class="setting-item" onclick="exportData()">
+          <div class="setting-icon">📤</div>
+          <div class="setting-label">ส่งออกข้อมูล JSON</div>
+          <div class="setting-arrow">›</div>
+        </div>
+        <div class="setting-item" onclick="importData()">
+          <div class="setting-icon">📥</div>
+          <div class="setting-label">นำเข้าข้อมูล JSON</div>
+          <div class="setting-arrow">›</div>
+        </div>
+        <div class="setting-item" onclick="resetData()" style="color:var(--expense)">
+          <div class="setting-icon">🗑️</div>
+          <div class="setting-label" style="color:var(--expense)">ล้างข้อมูลทั้งหมด</div>
+          <div class="setting-arrow" style="color:var(--expense)">›</div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">เกี่ยวกับ</div>
+        <div class="card" style="color:var(--text3);font-size:13px;line-height:1.8">
+          <div>📝 JodJod v1.0</div>
+          <div>ติดตามการเงินส่วนตัว</div>
+          <div>ข้อมูลเก็บบนอุปกรณ์ของคุณ</div>
+        </div>
+      </div>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
     </div>
   </div>
 
-  <!-- PAGE 4: WALLETS -->
-  <div class="page" id="page-wallets">
-    <div class="page-header" style="padding-top:56px">
-      <div class="page-title">กระเป๋าเงิน</div>
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="goPage('calendar',this)">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">ปฏิทิน</span>
+    </button>
+    <button class="nav-btn" onclick="goPage('transactions',this)">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">รายการ</span>
+    </button>
+    <button class="nav-btn add-btn" onclick="goPage('add',this)">
+      <div class="nav-icon-wrap"><span class="nav-icon">＋</span></div>
+      <span class="nav-label">เพิ่ม</span>
+    </button>
+    <button class="nav-btn" onclick="goPage('wallets',this)">
+      <span class="nav-icon">💼</span>
+      <span class="nav-label">กระเป๋า</span>
+    </button>
+    <button class="nav-btn" onclick="goPage('settings',this)">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">ตั้งค่า</span>
+    </button>
+  </nav>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div id="modal-content"></div>
     </div>
-    <div id="wallet-list" style="margin-top:12px"></div>
-    <button class="add-wallet-fab" onclick="openAddWallet()">＋</button>
   </div>
 
-  <!-- PAGE 5: SETTINGS -->
-  <div class="page" id="page-settings">
-    <div class="page-header" style="padding-top:56px">
-      <div class="page-title">ตั้งค่า</div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-title">ข้อมูล</div>
-      <div class="setting-item" onclick="exportData()">
-        <div class="setting-icon">📤</div>
-        <div class="setting-label">ส่งออกข้อมูล JSON</div>
-        <div class="setting-arrow">›</div>
-      </div>
-      <div class="setting-item" onclick="importData()">
-        <div class="setting-icon">📥</div>
-        <div class="setting-label">นำเข้าข้อมูล JSON</div>
-        <div class="setting-arrow">›</div>
-      </div>
-      <div class="setting-item" onclick="resetData()" style="color:var(--expense)">
-        <div class="setting-icon">🗑️</div>
-        <div class="setting-label" style="color:var(--expense)">ล้างข้อมูลทั้งหมด</div>
-        <div class="setting-arrow" style="color:var(--expense)">›</div>
-      </div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-title">เกี่ยวกับ</div>
-      <div class="card" style="color:var(--text3);font-size:13px;line-height:1.8">
-        <div>🌙 Blue Moon v1.0</div>
-        <div>ติดตามการเงินส่วนตัว</div>
-        <div>ข้อมูลเก็บบนอุปกรณ์ของคุณ</div>
-      </div>
-    </div>
-    <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
-  </div>
-</div>
+  <div class="toast" id="toast"></div>
 
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
-  <button class="nav-btn active" onclick="goPage('calendar',this)">
-    <span class="nav-icon">📅</span>
-    <span class="nav-label">ปฏิทิน</span>
-  </button>
-  <button class="nav-btn" onclick="goPage('transactions',this)">
-    <span class="nav-icon">📋</span>
-    <span class="nav-label">รายการ</span>
-  </button>
-  <button class="nav-btn add-btn" onclick="goPage('add',this)">
-    <div class="nav-icon-wrap"><span class="nav-icon">＋</span></div>
-    <span class="nav-label">เพิ่ม</span>
-  </button>
-  <button class="nav-btn" onclick="goPage('wallets',this)">
-    <span class="nav-icon">💼</span>
-    <span class="nav-label">กระเป๋า</span>
-  </button>
-  <button class="nav-btn" onclick="goPage('settings',this)">
-    <span class="nav-icon">⚙️</span>
-    <span class="nav-label">ตั้งค่า</span>
-  </button>
-</nav>
-
-<!-- MODALS -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="modal-handle"></div>
-    <div id="modal-content"></div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
+
 </html>

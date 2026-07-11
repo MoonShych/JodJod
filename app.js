@@ -4,7 +4,7 @@ let DB = {
   wallets: [],
   transactions: [],
   categories: { income: [], expense: [] },
-  settings: { theme: 'bluemoon' }
+  settings: {}
 };
 
 const DEFAULT_CATS = {
@@ -32,20 +32,20 @@ const DEFAULT_WALLETS = [
 ];
 
 function loadDB() {
-  const raw = localStorage.getItem('bluemoon_v2');
+  const raw = localStorage.getItem('jodjod_v1');
   if (raw) {
     try { DB = JSON.parse(raw); } catch(e) {}
   } else {
     DB.wallets = JSON.parse(JSON.stringify(DEFAULT_WALLETS));
     DB.categories = JSON.parse(JSON.stringify(DEFAULT_CATS));
     DB.transactions = [];
-    DB.settings = { theme: 'bluemoon' };
+    DB.settings = {};
     saveDB();
   }
   if (!DB.categories) DB.categories = JSON.parse(JSON.stringify(DEFAULT_CATS));
-  if (!DB.settings) DB.settings = { theme: 'bluemoon' };
+  if (!DB.settings) DB.settings = {};
 }
-function saveDB() { localStorage.setItem('bluemoon_v2', JSON.stringify(DB)); }
+function saveDB() { localStorage.setItem('jodjod_v1', JSON.stringify(DB)); }
 
 // ── STATE ──────────────────────────────────────────
 let calYear, calMonth;       // current calendar view
@@ -60,7 +60,6 @@ let txFilterWallet = 'all', txFilterMonth = 'all', txFilterType = 'all';
 loadDB();
 const now = new Date();
 calYear = now.getFullYear(); calMonth = now.getMonth();
-applyTheme(DB.settings.theme);
 renderAll();
 
 function renderAll() {
@@ -69,7 +68,6 @@ function renderAll() {
   renderTransactionPage();
   renderAddPage();
   renderWalletsPage();
-  renderSettingsTheme();
   updateTodayLabel();
 }
 
@@ -706,29 +704,11 @@ function pickWallet(id) {
 }
 
 // ── SETTINGS ──────────────────────────────────────
-function renderSettingsTheme() {
-  ['bluemoon','dark','light'].forEach(t => {
-    const el = document.getElementById('theme-' + t);
-    if (el) el.classList.toggle('active', DB.settings.theme === t);
-  });
-}
-
-function setTheme(t) {
-  DB.settings.theme = t;
-  saveDB(); applyTheme(t); renderSettingsTheme();
-}
-
-function applyTheme(t) {
-  document.body.classList.remove('light');
-  if (t === 'light') document.body.classList.add('light');
-}
-
 function exportData() {
   const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'bluemoon-backup-' + toDateStr(new Date()) + '.json';
-  a.click();
+  a.download = 'jodjod-backup-' + toDateStr(new Date()) + '.json';  a.click();
   showToast('📤 ส่งออกข้อมูลแล้ว');
 }
 
@@ -765,7 +745,7 @@ function resetData() {
 }
 
 function confirmReset() {
-  localStorage.removeItem('bluemoon_v2');
+  localStorage.removeItem('jodjod_v1');
   closeModal();
   loadDB(); renderAll();
   showToast('🗑️ ล้างข้อมูลแล้ว');
