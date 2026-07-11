@@ -492,14 +492,19 @@ function saveTransaction() {
   if (tx.type === 'income') w.balance += amount;
   else w.balance -= amount;
 
-  saveDB();
-  calYear = parseInt(date.split('-')[0]);
-  calMonth = parseInt(date.split('-')[1]) - 1;
-  renderAll();
-  resetAddForm();
-  editTxId = null;
-  showToast(editTxId ? '✏️ แก้ไขแล้ว' : '✅ บันทึกแล้ว!');
-  setTimeout(() => goPage('calendar', document.querySelectorAll('.nav-btn')[0]), 300);
+const isEdit = !!editTxId;
+
+saveDB();
+calYear = parseInt(date.split('-')[0]);
+calMonth = parseInt(date.split('-')[1]) - 1;
+renderAll();
+resetAddForm();
+
+showToast(isEdit ? '✏️ แก้ไขแล้ว' : '✅ บันทึกแล้ว!');
+
+editTxId = null;
+
+setTimeout(() => goPage('calendar', document.querySelectorAll('.nav-btn')[0]), 300);
 }
 
 function openAddCategory() {
@@ -794,3 +799,11 @@ function toTimeStr(d) {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 function updateAddForm() { }
+
+document
+.querySelectorAll(".tx-card")
+.forEach((card,index)=>{
+
+card.style.animationDelay=index*40+"ms";
+
+});

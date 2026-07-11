@@ -46,6 +46,7 @@
   /* Navigation */
   --nav-h: 72px;
 }
+
 /* ===== Balance Card ===== */
 
 .balance-card{
@@ -85,6 +86,7 @@
     position:relative;
     z-index:1;
 }
+
 
 /* ===== หัวข้อ ===== */
 
@@ -161,6 +163,7 @@
 .b-val.negative{
     color:#ef4444;   /* คงเหลือติดลบ */
 }
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -1143,4 +1146,129 @@ body.light .balance-card {
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 2px;
+}
+
+
+
+/* Animation */
+.page{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    transform:translateX(24px);
+    transition:
+        opacity .28s ease,
+        transform .28s ease;
+    pointer-events:none;
+}
+
+.page.active{
+    opacity:1;
+    transform:translateX(0);
+    pointer-events:auto;
+}
+.balance-card{
+    animation:balanceShow .45s ease;
+}
+
+@keyframes balanceShow{
+
+0%{
+opacity:0;
+transform:translateY(20px) scale(.97);
+}
+
+100%{
+opacity:1;
+transform:none;
+}
+
+}
+.tx-card{
+
+opacity:0;
+
+animation:txShow .35s forwards;
+
+}
+
+@keyframes txShow{
+
+from{
+
+opacity:0;
+
+transform:translateY(12px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:none;
+
+}
+
+}
+button{
+
+transition:.18s;
+
+}
+
+button:active{
+
+transform:scale(.95);
+
+}
+.add-wallet-fab{
+
+transition:.2s;
+
+}
+
+.add-wallet-fab:hover{  
+
+transform:scale(1.08);
+
+}
+
+.add-wallet-fab:active{
+
+transform:scale(.92);
+
+}
+.cat-item{
+
+transition:.18s;
+
+}
+
+.cat-item:active{
+
+transform:scale(.92);
+
+}
+
+.cat-item.selected{
+
+animation:pop .25s;
+
+}
+
+@keyframes pop{
+
+0%{
+
+transform:scale(.8);
+
+}
+
+100%{
+
+transform:scale(1);
+
+}
+
 }
