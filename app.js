@@ -1,10 +1,15 @@
+// ═══════════════════════════════════════════════════════════
+//  JODJOD - Personal Finance Tracker
+//  Organized & Refactored
+// ═══════════════════════════════════════════════════════════
 
-// ── DATA ──────────────────────────────────────────
+// ── DATA ──────────────────────────────────────────────
+
 let DB = {
   wallets: [],
   transactions: [],
   categories: { income: [], expense: [] },
-  settings: { theme: 'bluemoon' }
+  settings: {}
 };
 
 const DEFAULT_CATS = {
@@ -26,28 +31,6 @@ const DEFAULT_CATS = {
   ]
 };
 
-const DEFAULT_WALLETS = [
-  { id: 'w1', name: 'กระเป๋าหลัก', icon: '💵', balance: 0 },
-  { id: 'w2', name: 'ธนาคาร', icon: '🏦', balance: 0 }
-];
-
-function loadDB() {
-  const raw = localStorage.getItem('bluemoon_v2');
-  if (raw) {
-    try { DB = JSON.parse(raw); } catch(e) {}
-  } else {
-    DB.wallets = JSON.parse(JSON.stringify(DEFAULT_WALLETS));
-    DB.categories = JSON.parse(JSON.stringify(DEFAULT_CATS));
-    DB.transactions = [];
-    DB.settings = { theme: 'bluemoon' };
-    saveDB();
-  }
-  if (!DB.categories) DB.categories = JSON.parse(JSON.stringify(DEFAULT_CATS));
-  if (!DB.settings) DB.settings = { theme: 'bluemoon' };
-}
-function saveDB() { localStorage.setItem('bluemoon_v2', JSON.stringify(DB)); }
-
-// ── STATE ──────────────────────────────────────────
 let calYear, calMonth;       // current calendar view
 let selWalletId = 'all';     // 'all' or wallet id
 let selectedDay = null;
@@ -56,11 +39,37 @@ let selectedCat = null;
 let editTxId = null;
 let txFilterWallet = 'all', txFilterMonth = 'all', txFilterType = 'all';
 
-// ── INIT ──────────────────────────────────────────
+// ── CALENDAR ──────────────────────────────────────────
+
+const MONTHS_TH = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+const DAYS_TH = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+
+const DEFAULT_WALLETS = [
+  { id: 'w1', name: 'กระเป๋าหลัก', icon: '💵', balance: 0 },
+  { id: 'w2', name: 'ธนาคาร', icon: '🏦', balance: 0 }
+];
+
+function loadDB() {
+  const raw = localStorage.getItem('jodjod_v1');
+  if (raw) {
+    try { DB = JSON.parse(raw); } catch (e) { }
+  } else {
+    DB.wallets = JSON.parse(JSON.stringify(DEFAULT_WALLETS));
+    DB.categories = JSON.parse(JSON.stringify(DEFAULT_CATS));
+    DB.transactions = [];
+    DB.settings = {};
+    saveDB();
+  }
+  if (!DB.categories) DB.categories = JSON.parse(JSON.stringify(DEFAULT_CATS));
+  if (!DB.settings) DB.settings = {};
+}
+function saveDB() { localStorage.setItem('jodjod_v1', JSON.stringify(DB)); }
+
+// ── INIT ──────────────────────────────────────────────
+
 loadDB();
 const now = new Date();
 calYear = now.getFullYear(); calMonth = now.getMonth();
-applyTheme(DB.settings.theme);
 renderAll();
 
 function renderAll() {
@@ -69,11 +78,11 @@ function renderAll() {
   renderTransactionPage();
   renderAddPage();
   renderWalletsPage();
-  renderSettingsTheme();
   updateTodayLabel();
 }
 
-// ── NAVIGATION ──────────────────────────────────────
+// ── NAVIGATION ────────────────────────────────────────
+
 function goPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -85,30 +94,50 @@ function goPage(name, btn) {
 }
 
 // ── BALANCE CARD ──────────────────────────────────────
+
 function renderBalanceCard() {
   const stats = calcStats(selWalletId, calYear, calMonth);
-  const totalBal = selWalletId === 'all'
-    ? DB.wallets.reduce((s, w) => s + (w.balance || 0), 0)
+
+  const totalBal = selWalletId === "all"
+    ? DB.wallets.reduce((sum, w) => sum + (w.balance || 0), 0)
     : (DB.wallets.find(w => w.id === selWalletId)?.balance || 0);
-  document.getElementById('balance-card-wrap').innerHTML = `
+
+  document.getElementById("balance-card-wrap").innerHTML = `
     <div class="balance-card">
+
       <div class="balance-label">ยอดรวม</div>
-      <div class="balance-amount">${fmt(totalBal)} ฿</div>
+
+      <div class="balance-amount ${totalBal < 0 ? "negative" : "positive"}">
+        ${totalBal < 0 ? "-" : ""}${fmt(Math.abs(totalBal))} ฿
+      </div>
+
       <div class="balance-row">
+
         <div class="balance-item">
           <div class="b-label">รายรับ</div>
-          <div class="b-val income">+${fmt(stats.income)}</div>
+          <div class="b-val income">
+            +${fmt(stats.income)}
+          </div>
         </div>
+
         <div class="balance-item">
           <div class="b-label">รายจ่าย</div>
-          <div class="b-val expense">-${fmt(stats.expense)}</div>
+          <div class="b-val expense">
+            -${fmt(Math.abs(stats.expense))}
+          </div>
         </div>
+
         <div class="balance-item">
           <div class="b-label">คงเหลือ</div>
-          <div class="b-val net">${fmt(stats.net)}</div>
+          <div class="b-val ${stats.net < 0 ? "negative" : "positive"}">
+            ${stats.net < 0 ? "-" : ""}${fmt(Math.abs(stats.net))}
+          </div>
         </div>
+
       </div>
-    </div>`;
+
+    </div>
+  `;
 }
 
 function calcStats(walletId, y, m) {
@@ -125,10 +154,6 @@ function calcStats(walletId, y, m) {
 function fmt(n) {
   return Math.abs(n).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
-
-// ── CALENDAR ──────────────────────────────────────
-const MONTHS_TH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-const DAYS_TH = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 
 function renderCalendar() {
   document.getElementById('cal-month-title').textContent = `${MONTHS_TH[calMonth]} ${calYear + 543}`;
@@ -149,7 +174,7 @@ function renderCalendar() {
   DB.transactions.forEach(t => {
     const d = new Date(t.date);
     if (d.getFullYear() === calYear && d.getMonth() === calMonth &&
-        (selWalletId === 'all' || t.wallet === selWalletId)) {
+      (selWalletId === 'all' || t.wallet === selWalletId)) {
       const key = d.getDate();
       if (!dayMap[key]) dayMap[key] = { inc: 0, exp: 0 };
       if (t.type === 'income') dayMap[key].inc += t.amount;
@@ -160,12 +185,12 @@ function renderCalendar() {
   let html = '';
   for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
   for (let d = 1; d <= daysInMonth; d++) {
-    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const ds = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const isToday = ds === todayStr;
     const isSel = selectedDay === ds;
     const dm = dayMap[d];
-    html += `<div class="cal-day${isToday?' today':''}${isSel?' selected':''}" onclick="selectDay('${ds}')">
-      <div class="day-num${isToday?' today-num':''}">${d}</div>
+    html += `<div class="cal-day${isToday ? ' today' : ''}${isSel ? ' selected' : ''}" onclick="selectDay('${ds}')">
+      <div class="day-num${isToday ? ' today-num' : ''}">${d}</div>
       ${dm && dm.inc > 0 ? `<div class="day-inc">+${fmtK(dm.inc)}</div>` : ''}
       ${dm && dm.exp > 0 ? `<div class="day-exp">-${fmtK(dm.exp)}</div>` : ''}
     </div>`;
@@ -175,8 +200,8 @@ function renderCalendar() {
 }
 
 function fmtK(n) {
-  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
-  if (n >= 1000) return (n/1000).toFixed(0) + 'K';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
   return n.toLocaleString('th-TH', { maximumFractionDigits: 0 });
 }
 
@@ -193,7 +218,7 @@ function renderDayDetail(ds) {
     .sort((a, b) => b.time.localeCompare(a.time));
   const d = new Date(ds);
   document.getElementById('day-detail-title').textContent =
-    `${d.getDate()} ${MONTHS_TH[d.getMonth()]} ${d.getFullYear()+543}`;
+    `${d.getDate()} ${MONTHS_TH[d.getMonth()]} ${d.getFullYear() + 543}`;
   const dd = document.getElementById('day-detail');
   dd.style.display = 'block';
   if (txs.length === 0) {
@@ -209,18 +234,19 @@ function calNext() { if (calMonth === 11) { calMonth = 0; calYear++; } else calM
 function updateTodayLabel() {
   const d = new Date();
   document.getElementById('cal-today-label').textContent =
-    `${d.getDate()} ${MONTHS_TH[d.getMonth()]}\n${d.getFullYear()+543}`;
+    `${d.getDate()} ${MONTHS_TH[d.getMonth()]}\n${d.getFullYear() + 543}`;
 }
 
-// ── TRANSACTIONS PAGE ──────────────────────────────────────
+// ── TRANSACTIONS PAGE ─────────────────────────────────
+
 function renderTransactionPage() {
   // filters
   const filterDiv = document.getElementById('tx-filters');
-  let chips = `<div class="filter-chip${txFilterType==='all'?' active':''}" onclick="setTxFilter('type','all')">ทั้งหมด</div>
-    <div class="filter-chip${txFilterType==='income'?' active':''}" onclick="setTxFilter('type','income')">💰 รายรับ</div>
-    <div class="filter-chip${txFilterType==='expense'?' active':''}" onclick="setTxFilter('type','expense')">💸 รายจ่าย</div>`;
+  let chips = `<div class="filter-chip${txFilterType === 'all' ? ' active' : ''}" onclick="setTxFilter('type','all')">ทั้งหมด</div>
+    <div class="filter-chip${txFilterType === 'income' ? ' active' : ''}" onclick="setTxFilter('type','income')">💰 รายรับ</div>
+    <div class="filter-chip${txFilterType === 'expense' ? ' active' : ''}" onclick="setTxFilter('type','expense')">💸 รายจ่าย</div>`;
   DB.wallets.forEach(w => {
-    chips += `<div class="filter-chip${txFilterWallet===w.id?' active':''}" onclick="setTxFilter('wallet','${w.id}')">${w.icon} ${w.name}</div>`;
+    chips += `<div class="filter-chip${txFilterWallet === w.id ? ' active' : ''}" onclick="setTxFilter('wallet','${w.id}')">${w.icon} ${w.name}</div>`;
   });
   filterDiv.innerHTML = chips;
   filterTx();
@@ -253,9 +279,9 @@ function filterTx() {
   const groups = {};
   txs.forEach(t => { if (!groups[t.date]) groups[t.date] = []; groups[t.date].push(t); });
   let html = '';
-  Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(dt => {
+  Object.keys(groups).sort((a, b) => b.localeCompare(a)).forEach(dt => {
     const d = new Date(dt);
-    html += `<div class="section-label" style="padding:0;margin:12px 0 8px">${d.getDate()} ${MONTHS_TH[d.getMonth()]} ${d.getFullYear()+543}</div>`;
+    html += `<div class="section-label" style="padding:0;margin:12px 0 8px">${d.getDate()} ${MONTHS_TH[d.getMonth()]} ${d.getFullYear() + 543}</div>`;
     html += groups[dt].map(t => txCardHTML(t)).join('');
   });
   list.innerHTML = html;
@@ -267,13 +293,13 @@ function txCardHTML(t) {
   return `<div class="tx-card" onclick="openTxDetail('${t.id}')">
     <div class="tx-icon-wrap ${t.type === 'income' ? 'income-bg' : 'expense-bg'}">${t.icon}</div>
     <div class="tx-info">
-      <div class="tx-name">${t.name}${t.note ? ' · <span style="font-weight:400;color:var(--text3)">'+t.note+'</span>' : ''}</div>
+      <div class="tx-name">${t.name}${t.note ? ' · <span style="font-weight:400;color:var(--text3)">' + t.note + '</span>' : ''}</div>
       <div class="tx-cat">${t.category}</div>
       <div class="tx-wallet-line">${wName}</div>
       <div class="tx-datetime">${t.date} ${t.time}</div>
     </div>
     <div class="tx-amount-wrap">
-      <div class="tx-amount ${t.type}">${t.type==='income'?'+':'-'}${fmt(t.amount)} ฿</div>
+      <div class="tx-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)} ฿</div>
     </div>
   </div>`;
 }
@@ -287,7 +313,7 @@ function openTxDetail(id) {
     <div class="card2" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
         <span style="color:var(--text3);font-size:13px">จำนวนเงิน</span>
-        <span class="${t.type}" style="font-size:20px;font-weight:800">${t.type==='income'?'+':'-'}${fmt(t.amount)} ฿</span>
+        <span class="${t.type}" style="font-size:20px;font-weight:800">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)} ฿</span>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
         <span style="color:var(--text3);font-size:13px">หมวดหมู่</span>
@@ -295,7 +321,7 @@ function openTxDetail(id) {
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
         <span style="color:var(--text3);font-size:13px">กระเป๋า</span>
-        <span style="font-size:13px">${w ? w.icon+' '+w.name : '—'}</span>
+        <span style="font-size:13px">${w ? w.icon + ' ' + w.name : '—'}</span>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
         <span style="color:var(--text3);font-size:13px">วันที่</span>
@@ -346,7 +372,8 @@ function openEditTx(id) {
   }, 50);
 }
 
-// ── ADD PAGE ──────────────────────────────────────
+// ── ADD PAGE ──────────────────────────────────────────
+
 function renderAddPage() {
   // wallet select
   const sel = document.getElementById('add-wallet-sel');
@@ -382,7 +409,7 @@ function renderCatGrid() {
   const filtered = q ? cats.filter(c => c.name.toLowerCase().includes(q)) : cats;
   let html = filtered.map(c => `
     <div class="cat-item${selectedCat && selectedCat.name === c.name && selectedCat.type === activeCatTab ? ' selected' : ''}"
-      onclick="selectCat('${encodeURIComponent(JSON.stringify({...c,type:activeCatTab}))}')">
+      onclick="selectCat('${encodeURIComponent(JSON.stringify({ ...c, type: activeCatTab }))}')">
       <div class="cat-emoji">${c.icon}</div>
       <div class="cat-name">${c.name}</div>
     </div>`).join('');
@@ -394,7 +421,7 @@ function renderCatGrid() {
 }
 
 function selectCat(encoded) {
-  try { selectedCat = JSON.parse(decodeURIComponent(encoded)); } catch(e) { return; }
+  try { selectedCat = JSON.parse(decodeURIComponent(encoded)); } catch (e) { return; }
   renderCatGrid();
   showMiniForm();
 }
@@ -465,14 +492,19 @@ function saveTransaction() {
   if (tx.type === 'income') w.balance += amount;
   else w.balance -= amount;
 
-  saveDB();
-  calYear = parseInt(date.split('-')[0]);
-  calMonth = parseInt(date.split('-')[1]) - 1;
-  renderAll();
-  resetAddForm();
-  editTxId = null;
-  showToast(editTxId ? '✏️ แก้ไขแล้ว' : '✅ บันทึกแล้ว!');
-  setTimeout(() => goPage('calendar', document.querySelectorAll('.nav-btn')[0]), 300);
+const isEdit = !!editTxId;
+
+saveDB();
+calYear = parseInt(date.split('-')[0]);
+calMonth = parseInt(date.split('-')[1]) - 1;
+renderAll();
+resetAddForm();
+
+showToast(isEdit ? '✏️ แก้ไขแล้ว' : '✅ บันทึกแล้ว!');
+
+editTxId = null;
+
+setTimeout(() => goPage('calendar', document.querySelectorAll('.nav-btn')[0]), 300);
 }
 
 function openAddCategory() {
@@ -504,6 +536,7 @@ function saveNewCat() {
 }
 
 // ── WALLETS PAGE ──────────────────────────────────────
+
 function renderWalletsPage() {
   const list = document.getElementById('wallet-list');
   if (DB.wallets.length === 0) {
@@ -533,8 +566,8 @@ function openWalletDetail(id) {
   const w = DB.wallets.find(x => x.id === id);
   if (!w) return;
   const stats = calcStats(id, now.getFullYear(), now.getMonth());
-  const txs = DB.transactions.filter(t => t.wallet === id).sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time)).slice(0, 5);
-  const barData = last6Months().map(({y,m,label}) => {
+  const txs = DB.transactions.filter(t => t.wallet === id).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 5);
+  const barData = last6Months().map(({ y, m, label }) => {
     const s = calcStats(id, y, m);
     return { label, inc: s.income, exp: s.expense };
   });
@@ -542,8 +575,8 @@ function openWalletDetail(id) {
   const bars = barData.map(b => `
     <div class="bar-wrap">
       <div style="display:flex;gap:2px;align-items:flex-end;height:60px">
-        <div class="bar inc" style="flex:1;height:${Math.round(b.inc/maxVal*56)+4}px"></div>
-        <div class="bar exp" style="flex:1;height:${Math.round(b.exp/maxVal*56)+4}px"></div>
+        <div class="bar inc" style="flex:1;height:${Math.round(b.inc / maxVal * 56) + 4}px"></div>
+        <div class="bar exp" style="flex:1;height:${Math.round(b.exp / maxVal * 56) + 4}px"></div>
       </div>
       <div class="bar-label">${b.label}</div>
     </div>`).join('');
@@ -552,7 +585,7 @@ function openWalletDetail(id) {
     <div class="modal-title">${w.icon} ${w.name}</div>
     <div class="card2" style="margin-bottom:12px">
       <div style="color:var(--text3);font-size:12px">ยอดคงเหลือ</div>
-      <div style="font-size:28px;font-weight:800;color:var(--accent2)">${fmt(w.balance||0)} ฿</div>
+      <div style="font-size:28px;font-weight:800;color:var(--accent2)">${fmt(w.balance || 0)} ฿</div>
     </div>
     <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:6px">6 เดือนล่าสุด</div>
     <div class="bar-chart">${bars}</div>
@@ -574,7 +607,7 @@ function last6Months() {
   const d = new Date();
   for (let i = 5; i >= 0; i--) {
     const dt = new Date(d.getFullYear(), d.getMonth() - i, 1);
-    result.push({ y: dt.getFullYear(), m: dt.getMonth(), label: MONTHS_TH[dt.getMonth()].slice(0,3) });
+    result.push({ y: dt.getFullYear(), m: dt.getMonth(), label: MONTHS_TH[dt.getMonth()].slice(0, 3) });
   }
   return result;
 }
@@ -603,7 +636,7 @@ function openEditWallet(id) {
     </div>
     <div class="form-field">
       <div class="form-label">ยอดคงเหลือเริ่มต้น</div>
-      <input class="form-input" type="number" id="ew-bal" value="${w.balance||0}" inputmode="decimal">
+      <input class="form-input" type="number" id="ew-bal" value="${w.balance || 0}" inputmode="decimal">
     </div>
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeModal()">ยกเลิก</button>
@@ -649,17 +682,18 @@ function saveNewWallet() {
   const name = document.getElementById('nw-name').value.trim();
   const balance = parseFloat(document.getElementById('nw-bal').value) || 0;
   if (!name) { showToast('⚠️ กรุณาใส่ชื่อกระเป๋า'); return; }
-  DB.wallets.push({ id: 'w_'+Date.now(), name, icon, balance });
+  DB.wallets.push({ id: 'w_' + Date.now(), name, icon, balance });
   saveDB(); closeModal(); renderAll();
   showToast('✅ เพิ่มกระเป๋าแล้ว');
 }
 
-// ── MONTH / WALLET PICKERS ──────────────────────────────────────
+// ── MONTH / WALLET PICKERS ────────────────────────────
+
 function openMonthPicker() {
   const months = MONTHS_TH.map((m, i) => `
     <div style="padding:12px;border-radius:10px;cursor:pointer;font-size:15px;
-      background:${calMonth===i ? 'rgba(59,130,246,.2)' : 'transparent'};
-      color:${calMonth===i ? 'var(--accent2)' : 'var(--text)'};font-weight:${calMonth===i?700:400}"
+      background:${calMonth === i ? 'rgba(59,130,246,.2)' : 'transparent'};
+      color:${calMonth === i ? 'var(--accent2)' : 'var(--text)'};font-weight:${calMonth === i ? 700 : 400}"
       onclick="pickMonth(${i})">${m}</div>`).join('');
   openModal(`<div class="modal-title">เลือกเดือน</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">${months}</div>`);
 }
@@ -671,11 +705,11 @@ function pickMonth(m) {
 
 function openWalletPicker(ctx) {
   let opts = `<div style="padding:12px;border-radius:10px;cursor:pointer;font-size:15px;
-    background:${selWalletId==='all'?'rgba(59,130,246,.2)':'transparent'};color:${selWalletId==='all'?'var(--accent2)':'var(--text)'};font-weight:${selWalletId==='all'?700:400}"
+    background:${selWalletId === 'all' ? 'rgba(59,130,246,.2)' : 'transparent'};color:${selWalletId === 'all' ? 'var(--accent2)' : 'var(--text)'};font-weight:${selWalletId === 'all' ? 700 : 400}"
     onclick="pickWallet('all')">🌐 ทุกกระเป๋า</div>`;
   DB.wallets.forEach(w => {
     opts += `<div style="padding:12px;border-radius:10px;cursor:pointer;font-size:15px;
-      background:${selWalletId===w.id?'rgba(59,130,246,.2)':'transparent'};color:${selWalletId===w.id?'var(--accent2)':'var(--text)'};font-weight:${selWalletId===w.id?700:400}"
+      background:${selWalletId === w.id ? 'rgba(59,130,246,.2)' : 'transparent'};color:${selWalletId === w.id ? 'var(--accent2)' : 'var(--text)'};font-weight:${selWalletId === w.id ? 700 : 400}"
       onclick="pickWallet('${w.id}')">${w.icon} ${w.name}</div>`;
   });
   openModal(`<div class="modal-title">เลือกกระเป๋า</div>${opts}`);
@@ -686,30 +720,13 @@ function pickWallet(id) {
   closeModal(); renderBalanceCard(); renderCalendar();
 }
 
-// ── SETTINGS ──────────────────────────────────────
-function renderSettingsTheme() {
-  ['bluemoon','dark','light'].forEach(t => {
-    const el = document.getElementById('theme-' + t);
-    if (el) el.classList.toggle('active', DB.settings.theme === t);
-  });
-}
-
-function setTheme(t) {
-  DB.settings.theme = t;
-  saveDB(); applyTheme(t); renderSettingsTheme();
-}
-
-function applyTheme(t) {
-  document.body.classList.remove('light');
-  if (t === 'light') document.body.classList.add('light');
-}
+// ── SETTINGS ──────────────────────────────────────────
 
 function exportData() {
   const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'bluemoon-backup-' + toDateStr(new Date()) + '.json';
-  a.click();
+  a.download = 'jodjod-backup-' + toDateStr(new Date()) + '.json'; a.click();
   showToast('📤 ส่งออกข้อมูลแล้ว');
 }
 
@@ -728,7 +745,7 @@ function handleImport(e) {
       DB = data;
       saveDB(); renderAll();
       showToast('📥 นำเข้าข้อมูลแล้ว');
-    } catch(err) { showToast('⚠️ ไม่สามารถอ่านไฟล์ได้'); }
+    } catch (err) { showToast('⚠️ ไม่สามารถอ่านไฟล์ได้'); }
     e.target.value = '';
   };
   reader.readAsText(file);
@@ -746,13 +763,14 @@ function resetData() {
 }
 
 function confirmReset() {
-  localStorage.removeItem('bluemoon_v2');
+  localStorage.removeItem('jodjod_v1');
   closeModal();
   loadDB(); renderAll();
   showToast('🗑️ ล้างข้อมูลแล้ว');
 }
 
-// ── MODAL ──────────────────────────────────────────
+// ── MODAL ─────────────────────────────────────────────
+
 function openModal(html) {
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('modal-overlay').classList.add('open');
@@ -761,7 +779,8 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
 }
 
-// ── TOAST ──────────────────────────────────────────
+// ── TOAST ─────────────────────────────────────────────
+
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -771,11 +790,20 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// ── UTILS ──────────────────────────────────────────
+// ── UTILS ─────────────────────────────────────────────
+
 function toDateStr(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 function toTimeStr(d) {
-  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
-function updateAddForm() {}
+function updateAddForm() { }
+
+document
+.querySelectorAll(".tx-card")
+.forEach((card,index)=>{
+
+card.style.animationDelay=index*40+"ms";
+
+});
