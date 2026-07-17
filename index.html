@@ -4,6 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="style.css">
@@ -126,22 +129,35 @@
         <div class="page-title">ตั้งค่า</div>
       </div>
       <div class="settings-section">
-        <div class="settings-title">ข้อมูล</div>
-        <div class="setting-item" onclick="exportData()">
-          <div class="setting-icon">📤</div>
-          <div class="setting-label">ส่งออกข้อมูล JSON</div>
-          <div class="setting-arrow">›</div>
+        <div class="settings-title">การแจ้งเตือน</div>
+
+        <div class="setting-item">
+          <div class="setting-icon">🔔</div>
+
+          <div class="setting-label">
+            <div>แจ้งเตือนบันทึกรายรับ-รายจ่าย</div>
+            <small style="color:var(--text3)">แจ้งเตือนทุกวัน</small>
+          </div>
+
+          <input type="checkbox" id="notifyToggle" style="width:22px;height:22px;">
         </div>
-        <div class="setting-item" onclick="importData()">
-          <div class="setting-icon">📥</div>
-          <div class="setting-label">นำเข้าข้อมูล JSON</div>
-          <div class="setting-arrow">›</div>
+
+        <div class="setting-item">
+          <div class="setting-icon">🕒</div>
+
+          <div class="setting-label">
+            เวลาแจ้งเตือน
+          </div>
+
+          <input type="time" id="notifyTime" value="20:00">
         </div>
-        <div class="setting-item" onclick="resetData()" style="color:var(--expense)">
-          <div class="setting-icon">🗑️</div>
-          <div class="setting-label" style="color:var(--expense)">ล้างข้อมูลทั้งหมด</div>
-          <div class="setting-arrow" style="color:var(--expense)">›</div>
+      </div>
+      <div class="setting-item" onclick="resetData()" style="color:var(--expense)">
+        <div class="setting-icon">🗑️</div>
+        <div class="setting-label" style="color:var(--expense)">
+          ล้างข้อมูลทั้งหมด
         </div>
+        <div class="setting-arrow" style="color:var(--expense)">›</div>
       </div>
       <div class="settings-section">
         <div class="settings-title">เกี่ยวกับ</div>
@@ -151,7 +167,6 @@
           <div>ข้อมูลเก็บบนอุปกรณ์ของคุณ</div>
         </div>
       </div>
-      <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
     </div>
   </div>
 
@@ -190,6 +205,22 @@
   <div class="toast" id="toast"></div>
 
   <script src="app.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+
+      navigator.serviceWorker.register("sw.js")
+        .then(() => {
+          console.log("JodJod Service Worker Ready");
+        })
+        .catch(err => {
+          console.log("SW Error", err);
+        });
+
+    }
+  </script>
+
+</body>
 </body>
 
 </html>
